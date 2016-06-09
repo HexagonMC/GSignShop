@@ -95,14 +95,32 @@ public class VirtualInventory {
         HashMap<ItemStack, Integer> mItemsToTake = StackToMap(isBackup);
         HashMap<ItemStack, Integer> mInventory = StackToMap(inventory.getContents());
 
-        for(Map.Entry<ItemStack, Integer> entry : mItemsToTake.entrySet()) {
-            if(mInventory.containsKey(entry.getKey())) {
-                if(mInventory.get(entry.getKey()) < entry.getValue()) {
-                    return false;
-                }
-            } else {
-                return false;
+        // For each item to take (e.g. 1 book)
+        for(Map.Entry<ItemStack, Integer> takeEntry : mItemsToTake.entrySet()) {
+            boolean contains = false;
+
+            for(Map.Entry<ItemStack, Integer> invEntry : mInventory.entrySet()) {
+                // Skip if not the same item type
+                if (!takeEntry.getKey().equals(invEntry.getKey()))
+                    continue;
+                // Skip if stack does not contain enough
+                if (invEntry.getValue() < takeEntry.getValue())
+                    continue;
+                // Skip if meta are not the same
+                if (takeEntry.getKey().hasItemMeta()) {
+                    if (!invEntry.getKey().hasItemMeta())
+                        continue;
+                    else if (!takeEntry.getKey().getItemMeta().equals(invEntry.getKey().getItemMeta()))
+                        continue;
+                } else if (invEntry.getKey().hasItemMeta())
+                    // Skip if source has meta but item to take doesn't
+                    continue;
+
+                contains = true;
             }
+
+            if (!contains)
+                return false;
         }
 
         return true;
